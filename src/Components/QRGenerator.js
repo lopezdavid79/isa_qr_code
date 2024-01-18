@@ -1,74 +1,89 @@
 import React, { useState, useRef } from 'react';
+import { Button, Form, Container, Row, Col } from 'react-bootstrap';
 import QRCode from 'qrcode.react';
+import html2canvas from 'html2canvas';
 
 const QRGenerator = () => {
   const [text, setText] = useState('');
-  const [size, setSize] = useState(256); // Tamaño predeterminado del código QR
-  const qrRef = useRef(null);
+  const [size, setSize] = useState(256);
   const [qrGenerated, setQRGenerated] = useState(false);
+  const qrContainerRef = useRef(null);
 
   const handleInputChange = (e) => {
     setText(e.target.value);
-    setQRGenerated(false); // Reiniciar la bandera cuando se cambia el texto
+    setQRGenerated(false);
   };
 
   const handleSizeChange = (e) => {
-    setSize(parseInt(e.target.value));
+    const newSize = parseInt(e.target.value);
+
+    // Validar y actualizar el tamaño solo si es un número válido
+    if (!isNaN(newSize) && newSize >= 100 && newSize <= 500) {
+      setSize(newSize);
+    }
+  };
+
+  const handleSizeSelection = (selectedSize) => {
+    setSize(selectedSize);
+    setQRGenerated(false);
   };
 
   const generateQRCode = () => {
     if (text.trim() !== '') {
-      setQRGenerated(true); // Establecer la bandera como verdadera al generar el QR
+      setQRGenerated(true);
     }
   };
 
   const downloadQRCode = () => {
-    if (qrGenerated) {
-      const canvas = qrRef.current?.qrCodeCanvas;
-      if (canvas) {
-        const url = canvas.toDataURL('image/png');
+    if (qrContainerRef.current) {
+      html2canvas(qrContainerRef.current).then((canvas) => {
         const link = document.createElement('a');
-        link.href = url;
-        link.download = 'codigo_qr.png';
-        document.body.appendChild(link);
+        link.href = canvas.toDataURL();
+        link.download = 'qrcode.png';
         link.click();
-        document.body.removeChild(link);
-      }
+      });
     }
   };
 
   return (
-    <div>
-      <h1>Generador de códigos QR</h1>
-      <input
-        type="text"
-        placeholder="Ingresa el texto para generar el código QR"
-        value={text}
-        onChange={handleInputChange}
-      />
-      <label>
-        Tamaño del código QR:
-        <input
-          type="number"
-          value={size}
-          onChange={handleSizeChange}
-          min="100"
-          max="500"
+    <Container className="mt-5">
+      <h1>ISA Code Generator </h1>
+      <h2>simple y rapido generador de codigo qr. </h2>
+      <Form.Group className="mb-3">
+        <Form.Control
+          type="text"
+          placeholder="Ingresa el texto para generar el código QR"
+          value={text}
+          onChange={handleInputChange}
         />
-      </label>
-      <button onClick={generateQRCode}>Generar QR</button>
-      <button onClick={downloadQRCode} disabled={!qrGenerated}>
+      </Form.Group>
+      <Form.Group className="mb-3">
+        <Form.Label>Tamaño del código QR:</Form.Label>
+        <Form.Control
+          as="select"
+          value={size}
+          onChange={(e) => handleSizeSelection(parseInt(e.target.value))}
+        >
+          <option value={100}>Pequeño</option>
+          <option value={256}>Mediano</option>
+          <option value={400}>Grande</option>
+          <option value={500}>Muy Grande</option>
+        </Form.Control>
+      </Form.Group>
+      <Button variant="primary" className="me-2" onClick={generateQRCode}>
+        Generar QR
+      </Button>
+      <Button variant="secondary" onClick={downloadQRCode} disabled={!qrGenerated}>
         Descargar QR
-      </button>
+      </Button>
       {text.trim() === '' && qrGenerated && (
-        <p>Por favor, ingresa texto para generar el código QR.</p>
+        <p className="text-danger">Por favor, ingresa texto para generar el código QR.</p>
       )}
-      <div>
-        {qrGenerated && text.trim() !== '' && (
-          <QRCode value={text} size={size} ref={qrRef} />
-        )}
+      <div ref={qrContainerRef}>
+        {qrGenerated && text.trim() !== '' && <QRCode value={text} size={size} />}
       </div>
-    </div>
+    </Container>
+    
   );
 };
 
