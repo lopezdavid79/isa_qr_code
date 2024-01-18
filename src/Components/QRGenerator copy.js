@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Button, Form, Container, Modal } from 'react-bootstrap';
+import { Button, Form, Container, Row, Col } from 'react-bootstrap';
 import QRCode from 'qrcode.react';
 import html2canvas from 'html2canvas';
 
@@ -7,7 +7,6 @@ const QRGenerator = () => {
   const [text, setText] = useState('');
   const [size, setSize] = useState(256);
   const [qrGenerated, setQRGenerated] = useState(false);
-  const [showModal, setShowModal] = useState(false);
   const qrContainerRef = useRef(null);
 
   const handleInputChange = (e) => {
@@ -17,6 +16,8 @@ const QRGenerator = () => {
 
   const handleSizeChange = (e) => {
     const newSize = parseInt(e.target.value);
+
+    // Validar y actualizar el tamaño solo si es un número válido
     if (!isNaN(newSize) && newSize >= 100 && newSize <= 500) {
       setSize(newSize);
     }
@@ -30,7 +31,6 @@ const QRGenerator = () => {
   const generateQRCode = () => {
     if (text.trim() !== '') {
       setQRGenerated(true);
-      setShowModal(true); // Mostrar el modal cuando se genera el código QR
     }
   };
 
@@ -45,14 +45,10 @@ const QRGenerator = () => {
     }
   };
 
-  const handleCloseModal = () => {
-    setShowModal(false);
-  };
-
   return (
     <Container className="mt-5">
-      <h1>ISA Code Generator</h1>
-      <h2>Simple y rápido generador de código QR.</h2>
+      <h1>ISA Code Generator </h1>
+      <h2>simple y rapido generador de codigo qr. </h2>
       <Form.Group className="mb-3">
         <Form.Control
           type="text"
@@ -83,19 +79,11 @@ const QRGenerator = () => {
       {text.trim() === '' && qrGenerated && (
         <p className="text-danger">Por favor, ingresa texto para generar el código QR.</p>
       )}
-
-      {/* Modal para mostrar el código QR */}
-      <Modal show={showModal} onHide={handleCloseModal}>
-        <Modal.Header closeButton>
-          <Modal.Title>Código QR Generado</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div ref={qrContainerRef}>
-            {qrGenerated && text.trim() !== '' && <QRCode value={text} size={size} />}
-          </div>
-        </Modal.Body>
-      </Modal>
+      <div ref={qrContainerRef}>
+        {qrGenerated && text.trim() !== '' && <QRCode value={text} size={size} />}
+      </div>
     </Container>
+    
   );
 };
 
